@@ -53,7 +53,7 @@ else
         # If the result is empty
         if !(test -n "$maxPC")   # or use: if [ ! -n "$maxPC" ]
         then 
-            echo "$0: No matched data based on your input"
+            echo "$0: No matching data for your input"
             exit 1
         # If the result is not empty, then 
         else    
@@ -63,7 +63,7 @@ else
                 # If the input number is not the year number e.g. 202
                 if [ $2 -ne $year ]
                 then
-                    echo "$0: No matched data based on your input"
+                    echo "$0: No matching data for your input"
                     exit 1
                 
                 else
