@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
-# CITS4407 assignment 1
-# tobacco_nation bash script
+
+### CITS4407 assignment 1: tobacco_nation
 # Written by Erica Kong. UWA student ID:24071068
 
-# Usage of this program 
+### Usage of this program 
 # This program takes exactly 3 arguments:
 # 1. The name of a database formatted like WHO_tobacco_control_tonly.csv
 # 2. The three-letter ISO standard identifier for a country (as used in the database) OR a year
@@ -12,7 +12,7 @@ Usage(){
     echo "Usage: tobacco_nation <csv data file>  < year | country code >  < Male | Female >"
 }
 
-# Conditional control of this program
+### Conditional control of this program 
 # If there is no argument in the user-input
 if [ $# -eq 0 ] 
 then
@@ -34,7 +34,7 @@ else
         echo "The named input file ${1} does not exist or has zero length"
     # If the file exist and has length
     else     
-        # Sort data and give the row of desired result to this variable
+        # Sorting data and giving the row of desired result to this variable
         res_row=$(grep $2 $1 | grep $3 | sort -t, -k 7,7 -nr | head -1 )
     
         # The maximum percentage of tobacco
@@ -47,22 +47,23 @@ else
         # The year
         year=$(echo "$res_row"| cut -d ',' -f5) 
         # Current year
-        current_year=$(date | cut -d ' ' -f4)
+        # current_year=$(date | cut -d ' ' -f4) # this command works different in linux
+        current_year="2024"
         
         # If the result is empty
         if !(test -n "$maxPC")   # or use: if [ ! -n "$maxPC" ]
         then 
-            echo "$0: No such data based on your input"
+            echo "$0: No matched data based on your input"
             exit 1
         # If the result is not empty, then 
         else    
             # If the second argument is year (a number)
             if [[ "$2" =~ ^[0-9]+$ ]] 
             then
-                # If the input number is not the year number e.g. 202 
+                # If the input number is not the year number e.g. 202
                 if [ $2 -ne $year ]
                 then
-                    echo "$0: No such data based on your input"
+                    echo "$0: No matched data based on your input"
                     exit 1
                 
                 else
