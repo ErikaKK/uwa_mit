@@ -2,39 +2,48 @@
 
 ### CITS4407 assignment 1: tobacco_nation
 # Written by Erica Kong. UWA student ID:24071068
+# Last revised in 27/03/2024 
 
-### Usage of this program 
+### Usage of this program: Tracking World-wide Tobacco Use
 # This program takes exactly 3 arguments:
 # 1. The name of a database formatted like WHO_tobacco_control_tonly.csv
 # 2. The three-letter ISO standard identifier for a country (as used in the database) OR a year
 # 3. The sex of the smoking population: Female or Male (We will not be using Both, which is the mean of the Famale and Male smoking rates).
+
+# If a country code is enterred, the program is to report, on standard output, the year with the maximum rate, 
+# for either females or males, depending on the third argument. The rate for that year should also be reported. 
+# Similarly, if a year is given as the second argument, the country with the highest rate for that year should be reported.
+###
+
+# Usage function, print the usage
 Usage(){
     echo "Usage: tobacco_nation <csv data file>  < year | country code >  < Male | Female >"
 }
 
 ### Conditional control of this program 
-# If there is no argument in the user-input
-if [ $# -eq 0 ] 
+# If there is no argument in the user-input, print the usage and exit
+if [[ $# -eq 0 ]] 
 then
-    Usage
+    1>&2 Usage
     exit 1
     
-# If the number of argument is not three 
-elif [ $# -ne 3 ]
+# If the number of argument is not three, print error message and the usage and exit
+elif [[ $# -ne 3 ]]
 then
-    echo "$0: this program requires three arguments"
+    1>&2 echo "$0: this program requires three arguments"
     Usage
     exit 1
 
 # If the number of argument is three 
 else
-    # If the file does not exist or has zero length
-    if !(test -s "$1")    # or use : if [ ! -s "$1" ]
+    # If the file does not exist or has zero length, print error message and exit
+    if [[ ! -s "$1" ]]
     then      
-        echo "The named input file ${1} does not exist or has zero length"
+        1>&2 echo "The named input file ${1} does not exist or has zero length"
+        exit 1
     # If the file exist and has length
     else     
-        # Sorting data and giving the row of desired result to this variable
+        # Sorting data and giving the row that contains the desired result to this variable
         res_row=$(grep $2 $1 | grep $3 | sort -t, -k 7,7 -nr | head -1 )
     
         # The maximum percentage of tobacco
@@ -50,26 +59,26 @@ else
         # current_year=$(date | cut -d ' ' -f4) # this command works different in linux
         current_year="2024"
         
-        # If the result is empty
-        if !(test -n "$maxPC")   # or use: if [ ! -n "$maxPC" ]
+        # If the result is empty, print error message and exit
+        if [[ ! -n "$maxPC" ]]
         then 
-            echo "$0: No matching data for your input"
+            1>&2 echo "$0: No matching data for your input"
             exit 1
-        # If the result is not empty, then 
+        # If the result is not empty, then check if the second argument is year or country code and print the report
         else    
             # If the second argument is year (a number)
             if [[ "$2" =~ ^[0-9]+$ ]] 
             then
-                # If the input number is not the year number e.g. 202
-                if [ $2 -ne $year ]
+                # If the input number is not the year number e.g. 202, print error message and exit
+                if [[ $2 -ne $year ]]
                 then
-                    echo "$0: No matching data for your input"
+                    1>&2 echo "$0: No matching data for your input"
                     exit 1
                 
                 else
                     # Compare current year and the year in the dataset
                     # If the year is in the past
-                    if [ $2 -lt $current_year ]
+                    if [[ $2 -lt $current_year ]]
                     then
                         echo "The global maximum percentage of ${3} tobacco users in ${2} was in ${country_name}(${country_code}) at ${maxPC}"
                     # If the year is in the future
