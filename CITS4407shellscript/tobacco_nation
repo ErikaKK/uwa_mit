@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-### CITS4407 assignment 1: tobacco_nation
+### CITS4407 Assignment 1: tobacco_nation
 # Written by Erica Kong. UWA student ID:24071068
 # Last revised in 27/03/2024 
 
@@ -20,17 +20,15 @@ Usage(){
     echo "Usage: tobacco_nation <csv data file>  < year | country code >  < Male | Female >"
 }
 
-### Conditional control of this program 
 # If there is no argument in the user-input, print the usage and exit
 if [[ $# -eq 0 ]] 
 then
-    1>&2 Usage
-    exit 1
+    Usage 
     
 # If the number of argument is not three, print error message and the usage and exit
 elif [[ $# -ne 3 ]]
 then
-    1>&2 echo "$0: this program requires three arguments"
+    echo "$0: this program requires three arguments" > /dev/stderr
     Usage
     exit 1
 
@@ -39,7 +37,7 @@ else
     # If the file does not exist or has zero length, print error message and exit
     if [[ ! -s "$1" ]]
     then      
-        1>&2 echo "The named input file ${1} does not exist or has zero length"
+        echo "The named input file ${1} does not exist or has zero length" > /dev/stderr
         exit 1
     # If the file exist and has length
     else     
@@ -56,13 +54,12 @@ else
         # The year
         year=$(echo "$res_row"| cut -d ',' -f5) 
         # Current year
-        # current_year=$(date | cut -d ' ' -f4) # this command works different in linux
         current_year="2024"
         
         # If the result is empty, print error message and exit
         if [[ ! -n "$maxPC" ]]
         then 
-            1>&2 echo "$0: No matching data for your input"
+            echo "$0: No matching data for your input" > /dev/stderr
             exit 1
         # If the result is not empty, then check if the second argument is year or country code and print the report
         else    
@@ -72,7 +69,7 @@ else
                 # If the input number is not the year number e.g. 202, print error message and exit
                 if [[ $2 -ne $year ]]
                 then
-                    1>&2 echo "$0: No matching data for your input"
+                    echo "$0: No matching data for your input" > /dev/stderr
                     exit 1
                 
                 else
@@ -86,10 +83,17 @@ else
                         echo "The global maximum percentage of ${3} tobacco users in ${2} is predicted to be in ${country_name}(${country_code}) at ${maxPC}" 
                     fi
                 fi
-            # If the second argument is country code   
+            # If the second argument is country code, print the record   
             else
-                echo "The global maximum percentage of ${3} tobacco users for ${country_name}(${2}) was ${maxPC} in ${year}"  
-            
+                # Compare current year with the year of the desired result
+                # If the year is in the past
+                if [[ $year -lt $current_year ]]
+                then
+                    echo "The global maximum percentage of ${3} tobacco users for ${country_name}(${2}) was ${maxPC} in ${year}" 
+                # If the year is in the future
+                else
+                    echo "The global maximum percentage of ${3} tobacco users for ${country_name}(${2}) is predicted to be ${maxPC} in ${year}"    
+                fi
             fi    
         fi    
     fi            
