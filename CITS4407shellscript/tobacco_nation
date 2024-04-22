@@ -2,7 +2,7 @@
 
 ### CITS4407 Assignment 1: tobacco_nation
 # Written by Erica Kong. UWA student ID:24071068
-# Last revised in 27/03/2024 
+# Last revised in 15/04/2024 
 
 ### Usage of this program: Tracking World-wide Tobacco Use
 # This program takes exactly 3 arguments:
@@ -20,6 +20,31 @@ Usage(){
     echo "Usage: tobacco_nation <csv data file>  < year | country code >  < Male | Female >"
 }
 
+# The second and the third input argument are case insensitive. 
+# Function to capitalize all letters 
+capitalize_letters() {
+    res=$(tr '[:lower:]' '[:upper:]' <<< ${1})
+    echo "$res"
+}
+
+# Function to convert the first letter to uppercase and the rest to lowercase
+capitalize_first_letter() {
+    input="$1"
+    # Extract the first character and convert it to uppercase
+    first_char=$(echo "${input:0:1}" | tr '[:lower:]' '[:upper:]')
+    # Extract the rest of the string and convert it to lowercase
+    rest_of_string=$(echo "${input:1}" | tr '[:upper:]' '[:lower:]')
+    # Concatenate the first character with the rest of the string
+    capitalized_string="$first_char$rest_of_string"
+    echo "$capitalized_string"
+}
+
+# Function to convert all letters to lowercase
+lowercase_letters() {
+    res=$(tr '[:upper:]' '[:lower:]'<<< ${1})
+    echo "$res"
+}
+
 # If there is no argument in the user-input, print the usage and exit
 if [[ $# -eq 0 ]] 
 then
@@ -32,71 +57,84 @@ then
     Usage
     exit 1
 
-# If the number of argument is three 
+# If the file does not exist or has zero length, print error message and exit
+elif [[ ! -s "$1" ]]
+then      
+    echo "The named input file ${1} does not exist or has zero length" > /dev/stderr
+    exit 1
+
+# If the file exist and has length
 else
-    # If the file does not exist or has zero length, print error message and exit
-    if [[ ! -s "$1" ]]
-    then      
-        echo "The named input file ${1} does not exist or has zero length" > /dev/stderr
-        exit 1
-    # If the file exist and has length
-    else     
-        # Sorting data and giving the row that contains the desired result to this variable
-        res_row=$(grep $2 $1 | grep $3 | sort -t, -k 7,7 -nr | head -1 )
+    # Considering the case could be different in the input data, convert every letter to lowercase
+    input2=$(lowercase_letters "$2")
+    input3=$(lowercase_letters "$3")
+
+    # Sorting data and giving the row that contains the desired result to this variable
+    res_row=$( grep -i "$input2" $1 | grep -i "$input3" | sort -t, -k 7,7 -nr | head -1 )
+    # The maximum percentage of tobacco
+    maxPC=$(echo "$res_row"| cut -d ',' -f7)
     
-        # The maximum percentage of tobacco
-        maxPC=$(echo "$res_row"| cut -d ',' -f7)
-        
-        # The country code
-        country_code=$(echo "$res_row"| cut -d ',' -f3)
-        # The country name
-        country_name=$(echo "$res_row"| cut -d ',' -f4)
-        # The year
-        year=$(echo "$res_row"| cut -d ',' -f5) 
-        # Current year
-        current_year="2024"
-        
-        # If the result is empty, print error message and exit
-        if [[ ! -n "$maxPC" ]]
-        then 
-            echo "$0: No matching data for your input" > /dev/stderr
-            exit 1
-        # If the result is not empty, then check if the second argument is year or country code and print the report
-        else    
-            # If the second argument is year (a number)
-            if [[ "$2" =~ ^[0-9]+$ ]] 
+    # The country code
+    country_code=$(echo "$res_row"| cut -d ',' -f3 )
+    country_code_lower=$(lowercase_letters "$country_code") # convert to lowercase
+    # The country name
+    country_name=$(echo "$res_row"| cut -d ',' -f4)
+    country_name_lower=$(lowercase_letters "$country_name") # convert to lowercase
+    # The year
+    year=$(echo "$res_row"| cut -d ',' -f5) 
+    # Gender
+    gender=$(echo "$res_row"| cut -d ',' -f6)
+    gender_lower=$(lowercase_letters "$gender") # convert to lowercase
+    # Current year
+    current_year="2024"
+
+    # If the result is empty, print error message and exit
+    if [[ ! -n "$maxPC" ]]
+    then 
+        echo "$0: No matching data for your input" > /dev/stderr
+        exit 1
+    # If the result is not empty, then check if the second argument is year or country code and print the report
+    else    
+        # Check if the second argument is year (a number)
+        if [[ "$2" =~ ^[0-9]+$ ]] 
+        then
+            # If the input is incomplete e.g. 202 or fem, print error message and exit
+            if [[ $2 -ne $year ]] || [[ $input3 != $gender_lower ]]
             then
-                # If the input number is not the year number e.g. 202, print error message and exit
-                if [[ $2 -ne $year ]]
+                echo "$0: No matching data for your input" > /dev/stderr
+                exit 1
+            
+            else
+                # Compare current year and the year in the dataset
+                # If the year is in the past
+                if [[ $2 -lt $current_year ]]
                 then
-                    echo "$0: No matching data for your input" > /dev/stderr
-                    exit 1
-                
+                    echo "The global maximum percentage of $(capitalize_first_letter "$input3") tobacco users in ${2} was in $(capitalize_first_letter "$country_name_lower")($(capitalize_letters "$country_code_lower")) at ${maxPC}"
+                # If the year is in the future
                 else
-                    # Compare current year and the year in the dataset
-                    # If the year is in the past
-                    if [[ $2 -lt $current_year ]]
-                    then
-                        echo "The global maximum percentage of ${3} tobacco users in ${2} was in ${country_name}(${country_code}) at ${maxPC}"
-                    # If the year is in the future
-                    else
-                        echo "The global maximum percentage of ${3} tobacco users in ${2} is predicted to be in ${country_name}(${country_code}) at ${maxPC}" 
-                    fi
+                    echo "The global maximum percentage of $(capitalize_first_letter "$input3") tobacco users in ${2} is predicted to be in $(capitalize_first_letter "$country_name_lower")($(capitalize_letters "$country_code_lower")) at ${maxPC}" 
                 fi
-            # If the second argument is country code, print the record   
+            fi
+        # If the second argument is country code, print the record   
+        else
+            # If the input is incomplete e.g. jp or fem, print error message and exit
+            if [[ $input2 != $country_code_lower ]] || [[ $input3 != $gender_lower ]]
+            then
+                echo "$0: No matching data for your input" > /dev/stderr
+                exit 1
             else
                 # Compare current year with the year of the desired result
                 # If the year is in the past
                 if [[ $year -lt $current_year ]]
                 then
-                    echo "The global maximum percentage of ${3} tobacco users for ${country_name}(${2}) was ${maxPC} in ${year}" 
+                    echo "The global maximum percentage of $(capitalize_first_letter "$input3") tobacco users for $(capitalize_first_letter "$country_name_lower")($(capitalize_letters "$country_code_lower")) was ${maxPC} in ${year}" 
                 # If the year is in the future
                 else
-                    echo "The global maximum percentage of ${3} tobacco users for ${country_name}(${2}) is predicted to be ${maxPC} in ${year}"    
+                    echo "The global maximum percentage of $(capitalize_first_letter "$input3") tobacco users for $(capitalize_first_letter "$country_name_lower")($(capitalize_letters "$country_code_lower")) is predicted to be ${maxPC} in ${year}"    
                 fi
             fi    
         fi    
-    fi            
+    fi              
 fi
 
 
