@@ -71,6 +71,7 @@ else
 
     # Sorting data and giving the row that contains the desired result to this variable
     res_row=$( grep -i "$input2" $1 | grep -i "$input3" | sort -t, -k 7,7 -nr | head -1 )
+    typeof "$resrow"
     # The maximum percentage of tobacco
     maxPC=$(echo "$res_row"| cut -d ',' -f7)
     
